@@ -5,7 +5,8 @@
             :url  "https://creativecommons.org"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [ring "1.7.1"]
-                 [compojure "1.6.1"]]
+                 [compojure "1.6.1"]
+                 [hiccup "1.0.5"]]
   :min-lein-version "2.0.0"
   :uberjar-name "todo-list.jar"
   :main todo-list.core

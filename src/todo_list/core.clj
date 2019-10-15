@@ -4,7 +4,9 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.handler.dump :refer [handle-dump]]
             [compojure.core :refer [defroutes GET]]
-            [compojure.route :refer [not-found]]))
+            [compojure.route :refer [not-found]]
+            [hiccup.core :refer :all]
+            [hiccup.page :refer :all]))
 
 (def operands {"+" + "/" / "*" * "-" -})
 
@@ -24,9 +26,8 @@
 
 (defn welcome
   [request]
-  {:status 200
-   :body "<h1>Well hello, old man</h1><p>What the hell are you doing</p>"
-   :headers {}})
+  (html [:h1 "Hello, Clojure world"]
+        [:p "Welcome to your first clojure app!"]))
 
 (defn goodbye
   [request]
