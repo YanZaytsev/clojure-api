@@ -6,6 +6,8 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [ring "1.7.1"]
                  [compojure "1.6.1"]]
+  :min-lein-version "2.0.0"
+  :uberjar-name "todo-list.jar"
   :main todo-list.core
   :repl-options {:init-ns todo-list.core}
   :profiles {:dev {:main todo-list.core/-dev-main}})
