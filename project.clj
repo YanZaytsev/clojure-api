@@ -6,7 +6,9 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [ring "1.7.1"]
                  [compojure "1.6.1"]
-                 [hiccup "1.0.5"]]
+                 [hiccup "1.0.5"]
+                 [org.clojure/java.jdbc "0.7.10"]
+                 [org.postgresql/postgresql "42.2.8.jre7"]]
   :min-lein-version "2.0.0"
   :uberjar-name "todo-list.jar"
   :main todo-list.core
