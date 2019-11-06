@@ -57,6 +57,52 @@
     (j/query pg-db ["SELECT state_id FROM state WHERE state = ?" s] {:row-fn :state_id :result-set-fn first})))
 
 
+(j/execute! pg-db
+            [(j/create-table-ddl :state_forest [[:state_id :int "REFERENCES state"]
+                                                [:state_forest_id :serial "PRIMARY KEY"]
+                                                [:state_forest "VARCHAR(256)"]
+                                                [:acres :int]])])
+
+
+(def al-state-forest [["Coccolocco" 4536]
+                      ["Hauss" 319]
+                      ["Geneva" 7120]
+                      ["Little River" 2100]
+                      ["Macun" 190]
+                      ["Weogufka" 240]])
+
+(defn load-state-forest! [sf-vec s]
+  (let [state-id (id-for-state s)]
+    (j/insert-multi! pg-db
+                     :state_forest
+                     (map #(hash-map :state_id state-id :state_forest (first %) :acres (second %)) sf-vec))))
+
+(load-state-forest! al-state-forest "AL")
+
+
+(j/delete! pg-db :state_forest ["state_forest = ?" "Macun"])
+
+(j/query pg-db ["SELECT * from state_forest WHERE state_forest = ?" "Macun"])
+
+(j/delete! pg-db :state ["abrv = ?" "AL"])
+
+(j/execute! pg-db [(j/drop-table-ddl :state_forest)])
+
+(j/execute! pg-db
+            [(j/create-table-ddl :state_forest [[:state_id :int "REFERENCES state ON UPDATE CASCADE ON DELETE CASCADE"]
+                                                [:state_forest_id :serial "PRIMARY KEY"]
+                                                [:state_forest "VARCHAR(256)"]
+                                                [:acres :int]])])
+
+(j/insert! pg-db :state {:state "Alabama" :abrv "AL"})
+
+(j/query pg-db
+         ["SELECT constraint_name FROM information_schema.table_constraints WHERE table_name = ?" "state_forest"])
+
+(j/execute! pg-db ["ALTER TABLE state_forest DROP CONSTRAINT state_forest_state_id_fkey"])
+
+(j/execute! pg-db
+            ["ALTER TABLE state_forest ADD CONSTRAINT state_forest_state_id_fkey FOREIGN KEY (state_id) REFERENCES state ON UPDATE CASCADE ON DELETE CASCADE"])
 
 (defn -main
   "A simple web server using Ring & Jetty."
