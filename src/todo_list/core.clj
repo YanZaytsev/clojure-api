@@ -6,7 +6,8 @@
             [ring.handler.dump :refer [handle-dump]]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :refer [not-found]]
-            [todo-list.handlers :as handlers]))
+            [todo-list.handlers :as handlers]
+            [clojure.string :as str]))
 
 (defroutes app
            (GET "/" [] handlers/welcome)
@@ -103,6 +104,28 @@
 
 (j/execute! pg-db
             ["ALTER TABLE state_forest ADD CONSTRAINT state_forest_state_id_fkey FOREIGN KEY (state_id) REFERENCES state ON UPDATE CASCADE ON DELETE CASCADE"])
+
+
+(j/execute! pg-db [(j/create-table-ddl :activity [[:activity_id :serial "PRIMARY KEY"]
+                                                  [:activity "VARCHAR(64)"]])])
+
+(j/insert-multi! pg-db :activity [{:activity "hunting"}
+                                  {:activity "fishing"}
+                                  {:activity "trail riding"}
+                                  {:activity "hiking"}
+                                  {:activity "primitive camping"}])
+
+(j/execute! pg-db [(j/create-table-ddl :state_forest_activity [[:state_forest_id :int "REFERENCES state_forest ON UPDATE CASCADE ON DELETE CASCADE"]
+                                                               [:activity_id :int "REFERENCES activity ON UPDATE CASCADE ON DELETE CASCADE"]
+                                                               ["CONSTRAINT state_forest_activity_pkey PRIMARY KEY (state_forest_id, activity_id)"]])])
+
+
+(defn id-for-state-forest [name]
+  (j/query pg-db ["SELECT state_forest_id FROM state_foresr WHERE state_forest = ?" (str/capitalize name)])
+  {:row-fn :state_forest_id :result-set-fn :first})
+
+
+
 
 (defn -main
   "A simple web server using Ring & Jetty."
