@@ -121,8 +121,40 @@
 
 
 (defn id-for-state-forest [name]
-  (j/query pg-db ["SELECT state_forest_id FROM state_foresr WHERE state_forest = ?" (str/capitalize name)])
-  {:row-fn :state_forest_id :result-set-fn :first})
+  (j/query pg-db
+           ["SELECT state_forest_id FROM state_forest WHERE state_forest = ?" (str/capitalize name)]
+           {:row-fn :state_forest_id :result-set-fn first}))
+
+(defn id-for-activity [name]
+  (j/query pg-db ["SELECT activity_id FROM activity WHERE activity = ?" (str/lower-case name)]
+           {:row-fn :activity_id :result-set-fn first}))
+
+(defn activity-remapper
+  [m]
+  (hash-map (keyword (:activity m)) (:activity_id m)))
+
+(defn load-state-forest-activities!
+  [sf-name sf-activities]
+  (let [sf-id (id-for-state-forest sf-name)
+        activities (j/query pg-db ["SELECT * from activity"] {:row-fn activity-remapper})
+        activities-map (apply merge activities)]
+    (j/insert-multi! pg-db
+                     :state_forest_activity
+                     (map
+                       #(hash-map :state_forest_id sf-id :activity_id ((keyword %) activities-map))
+                       sf-activities))))
+
+
+
+(defn name-for-activity-id [id]
+  (j/query pg-db ["SELECT activity FROM activity WHERE activity_id = ?" id] {:row-fn :activity}))
+
+
+(defn get-activities-for-sf [sf-name]
+  (let [activity-ids (j/query pg-db ["SELECT activity_id FROM state_forest_activity WHERE state_forest_id = ?" (id-for-state-forest sf-name)] {:row-fn :activity_id})]
+    (j/query pg-db [(format "SELECT activity FROM activity WHERE activity_id in (%s)" (str/join "," activity-ids))] {:row-fn :activity})))
+
+
 
 
 
